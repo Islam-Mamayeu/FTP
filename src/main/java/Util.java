@@ -14,8 +14,8 @@ import org.apache.commons.net.ftp.FTPFile;
 public class Util {
 
 	static FTPClient ftp = new FTPClient();
-	static final private String FTPLOGIN = "anonymous";
-	static final private String FTPPASSWORD = "";
+	private static final  String FTPLOGIN = "anonymous";
+	private static final  String FTPPASSWORD = "";
 
 	public static boolean connect(String ftpUrl) throws SocketException, IOException {
 		try {
@@ -40,7 +40,8 @@ public class Util {
         if(ftp.isConnected())
         {
 		System.out.println("List of files:");
-		System.out.println("**********************");
+		System.out.println("Name:                   Size:" );
+		System.out.println("********************************");
 		FTPFile[] ftpfile = ftp.listFiles();
 		for(FTPFile f : ftpfile)
 		{
@@ -50,13 +51,16 @@ public class Util {
 			}
 			else
 			{
-				System.out.println(f.getName());
+				
+				System.out.println(f.getName() + "    "  + getSizeOfFile(f.getSize()));
+				
+
 			}
 			
 			
 		}
 			
-		System.out.println("**********************");
+		System.out.println("********************************");
         }
         else
         {
@@ -65,6 +69,38 @@ public class Util {
         }
 
 	}
+	public static String getSizeOfFile(double  sizeOfFile) 
+	{
+         final int KB = 1024;
+         final int MB = 1048576;
+         final int GB = 1073741824;
+         double  final_sizeOfFile = 0;
+         
+         if((sizeOfFile/KB)>1024)
+         {
+        	 if((sizeOfFile/MB)>1024)
+        	 {
+        		 final_sizeOfFile = sizeOfFile/GB;
+        		 return final_sizeOfFile + "GB";
+        		 	 
+        	 }
+        	 else
+        	 {
+        		 final_sizeOfFile = sizeOfFile/MB;
+        		 return final_sizeOfFile + "MB";
+        	 }
+ 
+         }
+         else
+         {
+        	 final_sizeOfFile = sizeOfFile/KB;
+        	 return final_sizeOfFile + " KB";
+        	 
+         }
+         
+		
+		
+	}
 	
 	public static void downloadFiles(String nameOfFile) throws IOException 
 	{
@@ -72,11 +108,15 @@ public class Util {
         ftp.setFileType(FTP.BINARY_FILE_TYPE);
         
         File downloadFile = new File("C:/Downloads/"+nameOfFile);
+        try
+        {
+        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadFile));
+        boolean success = ftp.retrieveFile(nameOfFile, outputStream);
+        outputStream.close();
+        System.out.println("Downloading, please wait..");
         
-        OutputStream outputStream1 = new BufferedOutputStream(new FileOutputStream(downloadFile));
-        boolean success = ftp.retrieveFile(nameOfFile, outputStream1);
-        outputStream1.close();
-
+       
+        
         if (success) {
             System.out.println("File has been downloaded successfully.");
         }
@@ -84,20 +124,25 @@ public class Util {
         {
         	System.out.println("File is not found");
         }
-
+        }
+        catch(Exception e)
+        {
+        	System.out.println("Message" + e.getMessage());
+        	
+        }
 		
 
 	}
-static public void menu() throws SocketException, IOException {
+    static public void menu() throws SocketException, IOException {
 		
-		Scanner sc = new Scanner(System.in);
+		Scanner commandScanner = new Scanner(System.in);
 		boolean b = true;
 
 		System.out.println("Type 'usage' - for more information about command");
 
 		while (b) {
 
-			String choice = sc.nextLine();
+			String choice = commandScanner.nextLine();
 			String[] command = choice.split(" ");
 			if (command[0].equals("connect") && command.length > 1) {
 				if (!(Util.connect(command[1]))) {
@@ -107,7 +152,6 @@ static public void menu() throws SocketException, IOException {
 			} else {
 
 				switch (command[0]) {
-				//////////////////////////////////////////////////////
 				case "usage":
 
 					System.out.println("connect    -        connection to ftp server (con ftp.example.com)");
@@ -118,7 +162,6 @@ static public void menu() throws SocketException, IOException {
 					System.out.println("clear      -        to clear");
 					System.out.println("exit       -        to end");
 					break;
-				//////////////////////////////////////////////////////
 				case "ls":
 					if (Util.ftp.isConnected()) {
 						Util.printFilesName();
@@ -127,7 +170,6 @@ static public void menu() throws SocketException, IOException {
 					}
 					break;
 
-				//////////////////////////////////////////////////////
 				case "cd":
 
 					if (command.length > 1) {
@@ -145,7 +187,6 @@ static public void menu() throws SocketException, IOException {
 
 					break;
 
-				//////////////////////////////////////////////////////
 				case "back":
 					if (command.length == 1) {
 
@@ -158,7 +199,6 @@ static public void menu() throws SocketException, IOException {
 
 					break;
 
-				//////////////////////////////////////////////////////
 				case "download":
                     
                      if(command.length>1)
@@ -171,12 +211,14 @@ static public void menu() throws SocketException, IOException {
                      }
 
 					break;
-				//////////////////////////////////////////////////////
 				case "exit":
 					System.out.println("Good bye");
 					b = false;
 					break;
-				//////////////////////////////////////////////////////
+				case "clear":
+					
+					break;
+
 				default:
 					System.out.println("Incorrect command!");
 					break;
